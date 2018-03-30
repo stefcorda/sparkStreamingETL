@@ -1,9 +1,13 @@
 package ingestion.sources
 
 import com.typesafe.config.{Config, ConfigFactory}
-import ingestion.sinks.FileSink.conf
+
+import collection.JavaConverters._
 import org.apache.spark.sql.streaming.DataStreamReader
+import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, SparkSession}
+
+import scala.util.{Success, Try}
 
 object FileSource extends Source("file") {
 
@@ -11,13 +15,7 @@ object FileSource extends Source("file") {
 
   val path: String = conf.getString(s"sources.$src.required.path")
   val format: String = conf.getString(s"sources.$src.required.format")
-  val outputMode: String = conf.getString(s"sources.$src.optional.outputMode")
   val refreshTime: Long = conf.getLong(s"sources.$src.optional.refreshTime")
-
-  val schema: Either[Throwable, List[AnyRef]] = conf.getAnyRefList(s"sources.$src.schema") match {
-    case ex: Throwable => Left(ex)
-    case lst: List[AnyRef] => Right(lst)
-  }
 
   override def getSource(spark: SparkSession): DataFrame = {
     val baseSource: DataStreamReader = spark
@@ -25,13 +23,36 @@ object FileSource extends Source("file") {
       .format(format)
 
     val fileSource = applyAllParams(baseSource)
-    fileSource.load(path)
+
+    val sourceWithSchema = checkAndApplySchema(fileSource)
+
+    sourceWithSchema.load(path)
 
   }
 
-  private def applySchema(df: DataFrame): DataFrame = {
-    val schema = ???
-    ???
+  /**
+    *
+    * @param dsr : The DataStreamReader
+    * @return The DataStreamReader with its associated schema if present, the original DataStreamReader otherwise
+    */
+  private def checkAndApplySchema(dsr: DataStreamReader): DataStreamReader = {
+    val userSchema: Try[List[String]] = Try {
+      conf.getObject(s"sources.$src.schema").keySet().asScala.toList
+    }
+
+    userSchema match {
+      case Success(schemaFields) => applyCSVSchema(dsr, schemaFields)
+      case _ => dsr
+    }
   }
+
+
+  private def applyCSVSchema(dsr: DataStreamReader, schemaFields: List[String]): DataStreamReader = {
+    val userSchema = schemaFields
+      .foldLeft(new StructType())((struct, fieldName) => struct.add(fieldName, conf.getString(s"sources.$src.schema.$fieldName")))
+
+    dsr.schema(userSchema)
+  }
+
 
 }

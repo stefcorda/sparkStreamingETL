@@ -1,7 +1,7 @@
 package ingestion
 
 import com.typesafe.config.ConfigFactory
-import ingestion.util.{DateFormatter, SourceSinkUtils}
+import ingestion.util.SourceSinkUtils
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.{col, window}
 import org.apache.spark.sql.streaming.StreamingQuery
@@ -32,7 +32,7 @@ object Runner {
 
     val output: DataFrame = input //THINK OF SOME ETL
 
-    val sink: StreamingQuery = SourceSinkUtils.chooseSink(output, sinkType)
+    val sink: StreamingQuery = SourceSinkUtils.chooseSink(sinkType, output)
 
     sink
       .awaitTermination()
