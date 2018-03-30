@@ -1,9 +1,13 @@
 package ingestion
 
+import java.sql.Timestamp
+import java.util.Date
+
 import com.typesafe.config.ConfigFactory
-import ingestion.util.SourceSinkUtils
+import ingestion.transformations.DateTrans
+import ingestion.util.{DateFormatter, SourceSinkUtils}
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.apache.spark.sql.functions.{col, window}
+import org.apache.spark.sql.functions.{col, lit}
 import org.apache.spark.sql.streaming.StreamingQuery
 import util.Implicits.dateFormatISO8601
 
@@ -30,9 +34,10 @@ object Runner {
 
     val input: DataFrame = SourceSinkUtils.chooseSource(sourceType, spark)
 
-    val output: DataFrame = input //THINK OF SOME ETL
+    val output: DataFrame = DateTrans.addCurrentTimestamp(input) //just adding process time for now
 
     val sink: StreamingQuery = SourceSinkUtils.chooseSink(sinkType, output)
+
 
     sink
       .awaitTermination()
