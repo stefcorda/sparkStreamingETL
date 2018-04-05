@@ -10,7 +10,7 @@ The sources and sinks can be configured via the *application.conf* file, using H
 I will explain usage with a real configuration.
 This examples takes csv files and writes json files, applying a schema given from the user and adding a column represeting process time. 
 
-```json
+```
 sources {
 
   //example of configuration for csv files
