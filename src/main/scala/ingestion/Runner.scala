@@ -38,7 +38,6 @@ object Runner {
 
     val sink: StreamingQuery = SourceSinkUtils.chooseSink(sinkType, output)
 
-
     sink
       .awaitTermination()
 

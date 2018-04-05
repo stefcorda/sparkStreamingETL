@@ -1,6 +1,6 @@
 package ingestion.util
 
-import ingestion.sinks.{FileSink, KafkaSink}
+import ingestion.sinks.{ConsoleSink, FileSink, KafkaSink}
 import ingestion.sources.{FileSource, KafkaSource}
 import org.apache.spark.sql.streaming.StreamingQuery
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -18,6 +18,7 @@ object SourceSinkUtils {
   def chooseSink(snk: String, df: DataFrame): StreamingQuery = {
     if (snk.toLowerCase == "file") FileSink.getSink(df)
     else if (snk.toLowerCase == "kafka") KafkaSink.getSink(df)
+    else if (snk.toLowerCase == "console") ConsoleSink.getSink(df)
     else throw new IllegalArgumentException(s"$snk is not supported")
   }
 }

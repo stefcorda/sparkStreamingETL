@@ -37,28 +37,6 @@ object FileSource extends Source("file") {
     */
   private def checkAndApplySchema(dsr: DataStreamReader): DataStreamReader = {
 
-    val userSchema: Try[List[(String, String)]] = Try {
-      conf
-        .getList(s"sources.$src.schema")
-        .asScala.toList
-        .map(formatConfigValue)
-    }
-
-    userSchema match {
-      case Success(schemaFields) => applyCSVSchema(dsr, schemaFields)
-      case _ => dsr
-    }
-
-    /**
-      *
-      * @param cv : a lightbend config value object (e.g. : {name=alice} )
-      * @return a pair of (nameField, fieldType)
-      */
-    def formatConfigValue(cv: ConfigValue): (String, String) = {
-      val fieldTypePair = cv.unwrapped().toString.replaceAll("[^a-zA-Z =]", "").split("=")
-      (fieldTypePair(0), fieldTypePair(1))
-    }
-
     /**
       *
       * @param dsr          the datastream reader to apply schema to
@@ -71,6 +49,30 @@ object FileSource extends Source("file") {
 
       dsr.schema(userSchema)
     }
+
+    /**
+      *
+      * @param cv : a lightbend config value object (e.g. : {name=alice} )
+      * @return a pair of (nameField, fieldType)
+      */
+    def formatConfigValue(cv: ConfigValue): (String, String) = {
+      val fieldTypePair = cv.unwrapped().toString.replaceAll("[^a-zA-Z =]", "").split("=")
+      (fieldTypePair(0), fieldTypePair(1))
+    }
+
+
+    val userSchema: Try[List[(String, String)]] = Try {
+      conf
+        .getList(s"sources.$src.schema")
+        .asScala.toList
+        .map(formatConfigValue)
+    }
+
+    userSchema match {
+      case Success(schemaFields) => applyCSVSchema(dsr, schemaFields)
+      case _ => dsr
+    }
+
 
   }
 
