@@ -36,10 +36,6 @@ object FileSource extends Source("file") {
     * @return The DataStreamReader with its associated schema if present, the original DataStreamReader otherwise
     */
   private def checkAndApplySchema(dsr: DataStreamReader): DataStreamReader = {
-    def formatConfigValue(cv: ConfigValue): (String, String) = {
-      val fieldTypePair = cv.unwrapped().toString.replaceAll("[^a-zA-Z =]", "").split("=")
-      (fieldTypePair(0), fieldTypePair(1))
-    }
 
     val userSchema: Try[List[(String, String)]] = Try {
       conf
@@ -52,15 +48,30 @@ object FileSource extends Source("file") {
       case Success(schemaFields) => applyCSVSchema(dsr, schemaFields)
       case _ => dsr
     }
+
+    /**
+      *
+      * @param cv : a lightbend config value object (e.g. : {name=alice} )
+      * @return a pair of (nameField, fieldType)
+      */
+    def formatConfigValue(cv: ConfigValue): (String, String) = {
+      val fieldTypePair = cv.unwrapped().toString.replaceAll("[^a-zA-Z =]", "").split("=")
+      (fieldTypePair(0), fieldTypePair(1))
+    }
+
+    /**
+      *
+      * @param dsr          the datastream reader to apply schema to
+      * @param schemaFields the pair list (fieldName, fieldType) to apply
+      * @return the datastream with the given schema applied
+      */
+    def applyCSVSchema(dsr: DataStreamReader, schemaFields: List[(String, String)]): DataStreamReader = {
+      val userSchema = schemaFields
+        .foldLeft(new StructType())((struct, fieldPair) => struct.add(fieldPair._1, fieldPair._2))
+
+      dsr.schema(userSchema)
+    }
+
   }
-
-
-  private def applyCSVSchema(dsr: DataStreamReader, schemaFields: List[(String, String)]): DataStreamReader = {
-    val userSchema = schemaFields
-      .foldLeft(new StructType())((struct, fieldPair) => struct.add(fieldPair._1, fieldPair._2))
-
-    dsr.schema(userSchema)
-  }
-
 
 }
