@@ -1,6 +1,6 @@
 package ingestion.sources
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigValue}
 
 import collection.JavaConverters._
 import org.apache.spark.sql.streaming.DataStreamReader
@@ -36,8 +36,16 @@ object FileSource extends Source("file") {
     * @return The DataStreamReader with its associated schema if present, the original DataStreamReader otherwise
     */
   private def checkAndApplySchema(dsr: DataStreamReader): DataStreamReader = {
-    val userSchema: Try[List[String]] = Try {
-      conf.getObject(s"sources.$src.schema").keySet().asScala.toList
+    def formatConfigValue(cv: ConfigValue): (String, String) = {
+      val fieldTypePair = cv.unwrapped().toString.replaceAll("[^a-zA-Z =]", "").split("=")
+      (fieldTypePair(0), fieldTypePair(1))
+    }
+
+    val userSchema: Try[List[(String, String)]] = Try {
+      conf
+        .getList(s"sources.$src.schema")
+        .asScala.toList
+        .map(formatConfigValue)
     }
 
     userSchema match {
@@ -47,9 +55,9 @@ object FileSource extends Source("file") {
   }
 
 
-  private def applyCSVSchema(dsr: DataStreamReader, schemaFields: List[String]): DataStreamReader = {
+  private def applyCSVSchema(dsr: DataStreamReader, schemaFields: List[(String, String)]): DataStreamReader = {
     val userSchema = schemaFields
-      .foldLeft(new StructType())((struct, fieldName) => struct.add(fieldName, conf.getString(s"sources.$src.schema.$fieldName")))
+      .foldLeft(new StructType())((struct, fieldPair) => struct.add(fieldPair._1, fieldPair._2))
 
     dsr.schema(userSchema)
   }
