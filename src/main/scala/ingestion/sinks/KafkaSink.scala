@@ -5,7 +5,10 @@ import org.apache.spark.sql.streaming.StreamingQuery
 
 object KafkaSink extends Sink("kafka") {
   override def getSink(df: DataFrame): StreamingQuery = {
-    val baseKafkaSink = df
+
+    val jsonDF = df.toJSON
+
+    val baseKafkaSink = jsonDF
       .writeStream
       .format("kafka")
       .option("kafka.bootstrap.servers", "localhost:9092") //TODO: handle dots in configuration...

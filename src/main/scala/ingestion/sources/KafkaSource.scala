@@ -5,7 +5,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 object KafkaSource extends Source("kafka") {
 
   def getSource(spark: SparkSession): DataFrame = {
-
     //base
     val baseKafkaSource = spark
       .readStream
@@ -15,7 +14,10 @@ object KafkaSource extends Source("kafka") {
     //required config
     val kafkaSource = applyAllParams(baseKafkaSource)
 
-    kafkaSource.load
+    kafkaSource
+      .load
+      .selectExpr(s"CAST(value AS STRING) AS value")
+
   }
 
 }
