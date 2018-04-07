@@ -15,6 +15,12 @@ object DateTrans {
     val timestampColumn = conf.getString("transformations.date.column")
     df
       .withColumn(timestampColumn, lit(new Timestamp(new Date().getTime)))
+  }
 
+  def addWatermark(df: DataFrame): DataFrame = {
+    val watermarkColumn = conf.getString("transformations.watermark.column")
+    val duration = conf.getString("transformations.watermark.duration")
+    df
+      .withWatermark(watermarkColumn, duration)
   }
 }

@@ -2,7 +2,7 @@ package ingestion
 
 
 import com.typesafe.config.ConfigFactory
-import ingestion.transformations.{ColumnsHandler, DateTrans}
+import ingestion.transformations.{ColumnsHandler, DateTrans, TransformationsHandler}
 import ingestion.util.SourceSinkUtils
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.streaming.StreamingQuery
@@ -30,7 +30,7 @@ object Runner {
 
     val input: DataFrame = SourceSinkUtils.chooseSource(sourceType, spark)
 
-    val output: DataFrame = DateTrans.addCurrentTimestamp(input) //just adding process time for now
+    val output: DataFrame = TransformationsHandler.applyTransformations(input)
 
     val sink: StreamingQuery = SourceSinkUtils.chooseSink(sinkType, output)
 

@@ -3,4 +3,4 @@ TODO (random order):
 2. look how to handle dots in HOCON
 3. With kafka source and kafka sink the original kafka message is inside "value", flatten that json object.
 4. cast types appropriately in the add function
-5. write logic to apply all selected transformations functions 
+5. transformations are not applied sequentially, think about it
