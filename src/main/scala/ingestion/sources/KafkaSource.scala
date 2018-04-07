@@ -9,7 +9,7 @@ object KafkaSource extends Source("kafka") {
     val baseKafkaSource = spark
       .readStream
       .format("kafka")
-      .option("kafka.bootstrap.servers", "localhost:9092") //TODO: handle dots in configuration...
+      .option("kafka.bootstrap.servers", conf.getString("sources.kafka.kafka-bootstrap-servers")) //TODO: handle dots in configuration...
 
     //required config
     val kafkaSource = applyAllParams(baseKafkaSource)

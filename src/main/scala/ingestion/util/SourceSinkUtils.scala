@@ -1,6 +1,6 @@
 package ingestion.util
 
-import ingestion.sinks.{ConsoleSink, FileSink, KafkaSink}
+import ingestion.sinks.{ConsoleSink, ElasticSink, FileSink, KafkaSink}
 import ingestion.sources.{FileSource, KafkaSource}
 import org.apache.spark.sql.streaming.StreamingQuery
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -15,7 +15,8 @@ object SourceSinkUtils {
   private val sinksMap: Map[String, DataFrame => StreamingQuery] = Map[String, DataFrame => StreamingQuery](
     "kafka" -> ((df: DataFrame) => KafkaSink.getSink(df)),
     "file" -> ((df: DataFrame) => FileSink.getSink(df)),
-    "console" -> ((df: DataFrame) => ConsoleSink.getSink(df))
+    "console" -> ((df: DataFrame) => ConsoleSink.getSink(df)),
+    "es" -> ((df:DataFrame) => ElasticSink.getSink(df))
   )
 
   def chooseSource(src: String, spark: SparkSession): DataFrame = {

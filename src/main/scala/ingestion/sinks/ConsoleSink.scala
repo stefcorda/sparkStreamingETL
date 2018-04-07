@@ -7,7 +7,8 @@ object ConsoleSink extends Sink("console") {
 
   override def getSink(df: DataFrame): StreamingQuery = {
     df
-      .writeStream.format(s"$snk")
+      .writeStream
+      .format(s"$snk")
       .start()
   }
 

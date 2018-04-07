@@ -2,12 +2,11 @@ package ingestion
 
 
 import com.typesafe.config.ConfigFactory
-import ingestion.transformations.{ColumnsHandler, DateTrans, TransformationsHandler}
+import ingestion.transformations.TransformationsHandler
 import ingestion.util.SourceSinkUtils
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.streaming.StreamingQuery
 import util.Implicits.dateFormatISO8601
-import org.apache.spark.sql.functions
 
 
 object Runner {

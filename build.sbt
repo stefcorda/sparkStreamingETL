@@ -15,4 +15,10 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql-kafka-0-10" % sparkVersion
 )
 
+val esVersion="6.2.0"
+
+//dependency for ES integration with spark
+libraryDependencies += "org.elasticsearch" % "elasticsearch-hadoop" % esVersion
+
+//config library
 libraryDependencies += "com.typesafe" % "config" % "1.3.2"
