@@ -29,4 +29,15 @@ object ColumnsHandler {
     )
   }
 
+  def filterOnColumns(df: DataFrame): DataFrame = {
+    val filterConditions: List[String] = conf.getStringList("transformations.filter").asScala.toList
+    filterConditions.foldLeft(df)((df, filterCond) => df.filter(filterCond))
+  }
+
+  def selectOnColumns(df: DataFrame): DataFrame = {
+    val selectConditions: List[String] = conf.getStringList("transformations.select").asScala.toList
+
+    df.selectExpr(selectConditions: _*)
+  }
+
 }

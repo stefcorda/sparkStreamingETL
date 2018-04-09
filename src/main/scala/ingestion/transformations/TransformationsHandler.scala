@@ -14,19 +14,15 @@ object TransformationsHandler {
     "add" -> ((df: DataFrame) => ColumnsHandler.addColumns(df)),
     "remove" -> ((df: DataFrame) => ColumnsHandler.removeColumns(df)),
     "date" -> ((df: DataFrame) => DateTrans.addCurrentTimestamp(df)),
-    "watermark" -> ((df: DataFrame) => DateTrans.addWatermark(df))
+    "watermark" -> ((df: DataFrame) => DateTrans.addWatermark(df)),
+    "filter" -> ((df:DataFrame) => ColumnsHandler.filterOnColumns(df)),
+    "select" -> ((df: DataFrame) => ColumnsHandler.selectOnColumns(df))
   )
 
-  //TODO: order is not being respected. Think about it.
   val transformationsToApply: List[String] = conf.getStringList("transformations.order").asScala.toList
 
 
   def applyTransformations(df: DataFrame): DataFrame = transformationsToApply.foldLeft(df)(
-    (df: DataFrame, funcKey: String) => transFuncMap.get(funcKey) match {
-      case Some(fun) => fun(df)
-      case None =>
-        println(s"$funcKey not supported")
-        df
-    }
+    (df: DataFrame, funcKey: String) => transFuncMap.get(funcKey).fold(df)(f => f(df))
   )
 }
