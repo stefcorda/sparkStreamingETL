@@ -13,12 +13,12 @@ object TransformationsHandler {
   private val transFuncMap: Map[String, DataFrame => DataFrame] = Map[String, DataFrame => DataFrame](
     "add" -> ((df: DataFrame) => ColumnsHandler.addColumns(df)),
     "remove" -> ((df: DataFrame) => ColumnsHandler.removeColumns(df)),
-    "date" -> ((df:DataFrame) => DateTrans.addCurrentTimestamp(df)),
+    "date" -> ((df: DataFrame) => DateTrans.addCurrentTimestamp(df)),
     "watermark" -> ((df: DataFrame) => DateTrans.addWatermark(df))
   )
 
   //TODO: order is not being respected. Think about it.
-  val transformationsToApply: List[String]= conf.getObject("transformations").keySet().asScala.toList
+  val transformationsToApply: List[String] = conf.getStringList("transformations.order").asScala.toList
 
 
   def applyTransformations(df: DataFrame): DataFrame = transformationsToApply.foldLeft(df)(
