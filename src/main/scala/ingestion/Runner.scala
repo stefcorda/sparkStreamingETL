@@ -1,7 +1,8 @@
 package ingestion
 
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
+import ingestion.listeners.ListenersHandler
 import ingestion.transformations.TransformationsHandler
 import ingestion.util.SourceSinkUtils
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -10,6 +11,7 @@ import util.Implicits.dateFormatISO8601
 
 
 object Runner {
+  val conf: Config = ConfigFactory.load
 
   val spark: SparkSession = SparkSession
     .builder()
@@ -17,15 +19,14 @@ object Runner {
     .master("local[*]")
     .getOrCreate()
 
-
-  spark.conf.set("spark.sql.streaming.checkpointLocation", ConfigFactory.load.getString("checkpointLocation"))
+  spark.conf.set("spark.sql.streaming.checkpointLocation", conf.getString("application.checkpointLocation"))
   spark.sparkContext.setLogLevel("WARN")
 
   def main(args: Array[String]): Unit = {
 
-    require(args.length == 2, "USAGE: <source>, <sink>")
+    ListenersHandler.checkAndAddListeners(spark)
 
-    val (sourceType, sinkType) = (args(0), args(1))
+    val (sourceType, sinkType) = (conf.getString("sources.sourceToApply"), conf.getString("sinks.sinkToApply"))
 
     val input: DataFrame = SourceSinkUtils.chooseSource(sourceType, spark)
 
