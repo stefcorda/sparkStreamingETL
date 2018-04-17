@@ -35,7 +35,7 @@ The sources and sinks can be configured via the *application.conf* file, using H
 I will explain usage with a real configuration. (Conf file is simplified)
 This examples takes csv files and writes them to Elastic Search, applying a schema given from the user and adding a column represeting process time. It also writes to file metrics about the state of the process 
 
-```json
+```
 application {
   checkpointLocation = "file:///home/stefano/Documents/SPARKINGEST/checkpoints"
 }
