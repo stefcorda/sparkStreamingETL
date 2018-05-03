@@ -6,7 +6,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import collection.JavaConverters._
 
-abstract class Source(val src: String) {
+abstract class StreamingSource(val src: String) {
 
   private[sources] val conf: Config = ConfigFactory.load
 

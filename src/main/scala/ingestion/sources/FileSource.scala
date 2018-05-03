@@ -9,9 +9,8 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.util.{Success, Try}
 
-object FileSource extends Source("file") {
+object FileSource extends StreamingSource("file") {
 
-  private[this] val conf: Config = ConfigFactory.load
 
   val path: String = conf.getString(s"sources.$src.required.path")
   val format: String = conf.getString(s"sources.$src.required.format")

@@ -2,7 +2,7 @@ package ingestion.sources
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-object KafkaSource extends Source("kafka") {
+object KafkaSource extends StreamingSource("kafka") {
 
   def getSource(spark: SparkSession): DataFrame = {
     //base
