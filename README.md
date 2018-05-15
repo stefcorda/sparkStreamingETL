@@ -9,6 +9,7 @@ The project aims to be pluggable, so that everyone can extend it adding new sour
 _I will look at streams joins in the immediate future_
 1. File
 2. Kafka
+3. Joinables
 
 
 ##### Current supported sinks:
@@ -96,6 +97,11 @@ listeners {
 ```
 
 Source and sink needs can have some optional parameters. You can figure them out by looking at the [spark documentation](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html) for the given component. You need to add them in the optional {} and required{} options present in the application.conf file
+
+I want to spend some more words on a new feature I recently added, joinable sources.
+One can specify *N* sources, for example 10 file sources, and 9 join conditions, they will be joined sequentially with the order given from the user.
+Every source can have its own transformations *before* being joined. 
+After all the sources are joined the process will continue transparently and apply its configurated transformations and sinks. 
 
 I will add documentation in the future for custom features, like transformations. However writing documents is boring, while coding is fun..
 PM me if you need something, I will be happy to text back. 
