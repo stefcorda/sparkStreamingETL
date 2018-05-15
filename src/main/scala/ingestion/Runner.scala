@@ -7,7 +7,6 @@ import ingestion.transformations.TransformationsHandler
 import ingestion.util.SourceSinkUtils
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.streaming.StreamingQuery
-import util.Implicits.dateFormatISO8601
 
 
 object Runner {
@@ -28,9 +27,9 @@ object Runner {
 
     val (sourceType, sinkType) = (conf.getString("sources.sourceToApply"), conf.getString("sinks.sinkToApply"))
 
-    val input: DataFrame = SourceSinkUtils.chooseSource(sourceType, spark)
+    val input: DataFrame = SourceSinkUtils.chooseSource(sourceType)
 
-    val output: DataFrame = TransformationsHandler.applyTransformations(input)
+    val output: DataFrame = TransformationsHandler().applyTransformations(input)
 
     val sink: StreamingQuery = SourceSinkUtils.chooseSink(sinkType, output)
 

@@ -6,21 +6,17 @@ import org.apache.spark.sql.functions.{col, window}
 
 import scala.collection.JavaConverters._
 
-object Aggregations {
+class Aggregations(prefixPath: String) {
 
   private[this] val conf = ConfigFactory.load
 
   def count(df: DataFrame): DataFrame = {
-    import df.sparkSession.implicits._
-    val watermarkColumn: String = conf.getString("transformations.count.watermarkColumn")
-    val (windowTime, slidingWindowTime) = (conf.getString("transformations.count.windowTime"), conf.getString("transformations.count.slidingTime"))
+    val watermarkColumn: String = conf.getString(s"$prefixPath.count.watermarkColumn")
+    val (windowTime, slidingWindowTime) = (conf.getString(s"$prefixPath.count.windowTime"), conf.getString(s"$prefixPath.count.slidingTime"))
     val groupColumns: List[Column] = List(window(col(watermarkColumn), windowTime, slidingWindowTime)) ++
-      conf.getStringList("transformations.count.columns").asScala.map(col)
+      conf.getStringList(s"$prefixPath.count.columns").asScala.map(col)
 
-    df.groupBy(
-      groupColumns: _*
-    )
-      .count
+    df.groupBy(groupColumns: _*).count
   }
 
 }

@@ -6,7 +6,7 @@ scalaVersion := "2.11.8"
 
 //avoiding conflicts with spark dependencies
 val jacksonVersion = "2.8.9"
-dependencyOverrides ++= ("com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
+dependencyOverrides ++= Seq("com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
   "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % jacksonVersion
 )

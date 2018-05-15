@@ -1,27 +1,37 @@
 package ingestion.util
 
+import com.typesafe.config.{Config, ConfigFactory}
 import ingestion.sinks.{ConsoleSink, ElasticSink, FileSink, KafkaSink}
 import ingestion.sources.{FileSource, KafkaSource}
 import org.apache.spark.sql.streaming.StreamingQuery
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.DataFrame
+import JoinableSourcesUtils.getJoinableSources
 
 object SourceSinkUtils {
 
-  private val sourcesMap: Map[String, SparkSession => DataFrame] = Map[String, SparkSession => DataFrame](
-    "kafka" -> ((spark: SparkSession) => KafkaSource.getSource(spark)),
-    "file" -> ((spark: SparkSession) => FileSource.getSource(spark))
+  private[util] val conf: Config = ConfigFactory.load
+
+  private lazy val sourcesMap: Map[String, DataFrame] = Map[String, DataFrame](
+    "kafka" -> new KafkaSource().source,
+    "file" -> new FileSource().source,
+    "joinables" -> getJoinableSources
   )
 
-  private val sinksMap: Map[String, DataFrame => StreamingQuery] = Map[String, DataFrame => StreamingQuery](
+   private [util] lazy val joinableSourcesMap: Map[String, String => DataFrame] = Map(
+    "kafka" -> ((sourceName: String) => KafkaSource.getSourceAsJoinable(sourceName)),
+    "file" -> ((sourceName: String) => FileSource.getSourceAsJoinable(sourceName))
+  )
+
+  private lazy val sinksMap: Map[String, DataFrame => StreamingQuery] = Map[String, DataFrame => StreamingQuery](
     "kafka" -> ((df: DataFrame) => KafkaSink.getSink(df)),
     "file" -> ((df: DataFrame) => FileSink.getSink(df)),
     "console" -> ((df: DataFrame) => ConsoleSink.getSink(df)),
-    "es" -> ((df:DataFrame) => ElasticSink.getSink(df))
+    "es" -> ((df: DataFrame) => ElasticSink.getSink(df))
   )
 
-  def chooseSource(src: String, spark: SparkSession): DataFrame = {
+  def chooseSource(src: String): DataFrame = {
     require(sourcesMap.contains(src.toLowerCase), s"source $src is not supported")
-    sourcesMap(src.toLowerCase)(spark)
+    sourcesMap(src.toLowerCase)
   }
 
   def chooseSink(snk: String, df: DataFrame): StreamingQuery = {

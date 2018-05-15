@@ -1,23 +1,24 @@
 package ingestion.sources
 
-import com.typesafe.config.{Config, ConfigFactory, ConfigValue}
+import com.typesafe.config.ConfigValue
 
 import collection.JavaConverters._
 import org.apache.spark.sql.streaming.DataStreamReader
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.DataFrame
 
 import scala.util.{Success, Try}
 
-object FileSource extends Source("file") {
+class FileSource extends Source("file") {
+  import ingestion.Runner.spark
+  import Source.conf
 
-  private[this] val conf: Config = ConfigFactory.load
+  lazy val path: String = conf.getString(s"sources.$src.required.path")
+  lazy val format: String = conf.getString(s"sources.$src.required.format")
+  lazy val refreshTime: Long = conf.getLong(s"sources.$src.optional.refreshTime")
+  lazy val userSchema: List[ConfigValue] = conf.getList(s"sources.$src.schema").asScala.toList
 
-  val path: String = conf.getString(s"sources.$src.required.path")
-  val format: String = conf.getString(s"sources.$src.required.format")
-  val refreshTime: Long = conf.getLong(s"sources.$src.optional.refreshTime")
-
-  override def getSource(spark: SparkSession): DataFrame = {
+  lazy val source: DataFrame = {
     val baseSource: DataStreamReader = spark
       .readStream
       .format(format)
@@ -61,19 +62,31 @@ object FileSource extends Source("file") {
     }
 
 
-    val userSchema: Try[List[(String, String)]] = Try {
-      conf
-        .getList(s"sources.$src.schema")
-        .asScala.toList
+    val formattedSchema: Try[List[(String, String)]] = Try {
+      userSchema
         .map(formatConfigValue)
     }
 
-    userSchema match {
+    formattedSchema match {
       case Success(schemaFields) => applyCSVSchema(dsr, schemaFields)
       case _ => dsr
     }
 
 
   }
+
+}
+
+object FileSource {
+  import Source.conf
+
+  def getSourceAsJoinable(sourceName: String): DataFrame = new FileSource with JoinableSource {
+
+    override val src: String = sourceName
+    override lazy val userSchema: List[ConfigValue] = conf.getList(s"sources.joinables.$src.schema").asScala.toList
+    override lazy val path: String = conf.getString(s"sources.joinables.$src.required.path")
+    override lazy val format: String = conf.getString(s"sources.joinables.$src.required.format")
+    override lazy val refreshTime: Long = conf.getLong(s"sources.joinables.$src.optional.refreshTime")
+  }.source
 
 }
